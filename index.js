@@ -920,9 +920,9 @@ async function checkPair(args) {
       console.log("Uniswap rate :" + Uniswap_Return);
       console.log("kyber rate :" + Kyber_Min_Return);
       console.log("Output amount : " + Output_Amount);
-    } else {
+    }/*  else {
       console.log("output less than 1");
-    }
+    } */
     /* console.table([{
       'Input Token': inputTokenSymbol,
       'Output Token': outputTokenSymbol,
@@ -935,9 +935,7 @@ async function checkPair(args) {
   } catch (error) {
     console.log(
       "unable to fetch for symbol : " +
-        args.outputTokenSymbol +
-        " due to : " +
-        error
+        args.outputTokenSymbol
     );
   }
 }
