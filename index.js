@@ -903,27 +903,29 @@ async function checkPair(args) {
       .getExpectedRate(outputTokenAddress, inputTokenAddress, inputAmount, true)
       .call();
 
-    let Uniswap_Return = new BigNumber(
+    let uniswapReturn = new BigNumber(
       web3.utils.fromWei(uniswapResult, "Ether")
     );
-    let Kyber_Expected_Rate = new BigNumber(
-      web3.utils.fromWei(kyberResult.expectedRate, "Ether")
-    );
-    let Kyber_Min_Return = web3.utils.fromWei(
-      kyberResult.slippageRate,
-      "Ether"
-    );
-    let Output_Amount = Uniswap_Return.multipliedBy(Kyber_Min_Return);
+    let kyberMinReturn = web3.utils.fromWei(kyberResult.slippageRate, "Ether");
+    let outputAmount = Uniswap_Return.multipliedBy(kyberMinReturn);
 
     if (Output_Amount.isGreaterThan(1)) {
       console.log("Buy==============>" + outputTokenSymbol);
-      console.log("Uniswap rate :" + Uniswap_Return);
-      console.log("kyber rate :" + Kyber_Min_Return);
-      console.log("Output amount : " + Output_Amount);
-    }/*  else {
+      console.table([
+        {
+          "Uniswap rate": uniswapReturn,
+          "Kyber rate": kyberMinReturn,
+          "Output amount": outputAmount,
+        },
+      ]);
+
+      console.log("Uniswap rate :" + uniswapReturn);
+      console.log("kyber rate :" + kyberMinReturn);
+      console.log("Output amount : " + outputAmount);
+    } /*  else {
       console.log("output less than 1");
     } */
-    /* console.table([{
+    /* 
       'Input Token': inputTokenSymbol,
       'Output Token': outputTokenSymbol,
       'Input Amount': web3.utils.fromWei(inputAmount, 'Ether'),
@@ -931,12 +933,9 @@ async function checkPair(args) {
       'Kyber Expected Rate': web3.utils.fromWei(kyberResult.expectedRate, 'Ether'),
       'Kyber Min Return': web3.utils.fromWei(kyberResult.slippageRate, 'Ether'),
       'Timestamp': moment().tz('America/Chicago').format(),
-    }]) */
+     */
   } catch (error) {
-    console.log(
-      "unable to fetch for symbol : " +
-        args.outputTokenSymbol
-    );
+    console.log("unable to fetch for symbol : " + args.outputTokenSymbol);
   }
 }
 
