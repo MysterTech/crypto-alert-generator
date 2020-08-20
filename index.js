@@ -1,4 +1,5 @@
 require("dotenv").config();
+const instrumentService = require("./getInstruments");
 const BigNumber = require("bignumber.js");
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -874,6 +875,7 @@ const kyberRateContract = new web3.eth.Contract(
 );
 // MISC CONFIG
 const POLLING_INTERVAL = process.env.POLLING_INTERVAL || 3000; // 3 Seconds
+const INSTRUMENTS_FILENAME = process.env.INSTRUMENTS_FILENAME;
 
 //=======================================================================================================================
 //=============================================Main functions============================================================
@@ -881,6 +883,7 @@ const POLLING_INTERVAL = process.env.POLLING_INTERVAL || 3000; // 3 Seconds
 server.listen(PORT, () => console.log(`Listening on ${PORT}`));
 let priceMonitor;
 let monitoringPrice = false;
+instrumentService.getJson();
 priceMonitor = setInterval(async () => {
   await monitorPrice();
 }, POLLING_INTERVAL);
@@ -967,13 +970,13 @@ async function monitorPrice() {
   monitoringPrice = true;
 
   try {
-    let jsonData = require("./instruments.json");
+    let jsonData = require(INSTRUMENTS_FILENAME);
     jsonData.forEach(async (element) => {
       await checkPair({
         inputTokenSymbol: "ETH",
         inputTokenAddress: "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
         outputTokenSymbol: element.symbol,
-        outputTokenAddress: element.href,
+        outputTokenAddress: element.address,
         inputAmount: web3.utils.toWei("1", "ETHER"),
       });
     });
