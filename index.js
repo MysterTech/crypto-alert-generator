@@ -8,18 +8,17 @@ const HDWalletProvider = require("@truffle/hdwallet-provider");
 const moment = require("moment-timezone");
 const numeral = require("numeral");
 const _ = require("lodash");
-const axios = require("axios");
 
+//=======================================================================================================================
+//=============================================Initializing connection objects===========================================
+//=======================================================================================================================
 // SERVER CONFIG
 const PORT = process.env.PORT || 5000;
 const app = express();
-const server = http
-  .createServer(app)
-  .listen(PORT, () => console.log(`Listening on ${PORT}`));
+const server = http.createServer(app);
 
 // WEB3 CONFIG
 const web3 = new Web3(process.env.RPC_URL);
-
 // Uniswap Factory Contract: https://etherscan.io/address/0xc0a47dfe034b400b47bdad5fecda2621de6c4d95#code
 const UNISWAP_FACTORY_ABI = [
   {
@@ -100,7 +99,6 @@ const uniswapFactoryContract = new web3.eth.Contract(
   UNISWAP_FACTORY_ABI,
   UNISWAP_FACTORY_ADDRESS
 );
-
 // Uniswap Exchange Template: https://etherscan.io/address/0x09cabec1ead1c0ba254b09efb3ee13841712be14#code
 const UNISWAP_EXCHANGE_ABI = [
   {
@@ -587,7 +585,6 @@ const UNISWAP_EXCHANGE_ABI = [
     gas: 1713,
   },
 ];
-
 // Kyber mainnet "Expected Rate": https://etherscan.io/address/0x96b610046d63638d970e6243151311d8827d69a5#readContract
 const KYBER_RATE_ABI = [
   {
@@ -875,7 +872,23 @@ const kyberRateContract = new web3.eth.Contract(
   KYBER_RATE_ABI,
   KYBER_RATE_ADDRESS
 );
+// MISC CONFIG
+const POLLING_INTERVAL = process.env.POLLING_INTERVAL || 3000; // 3 Seconds
 
+//=======================================================================================================================
+//=============================================Main functions============================================================
+//=======================================================================================================================
+server.listen(PORT, () => console.log(`Listening on ${PORT}`));
+let priceMonitor;
+let monitoringPrice = false;
+priceMonitor = setInterval(async () => {
+  await monitorPrice();
+}, POLLING_INTERVAL);
+
+//=======================================================================================================================
+//=============================================Base functions============================================================
+//=======================================================================================================================
+// Checking opportunity for a pair
 async function checkPair(args) {
   try {
     // destructuring args
@@ -907,9 +920,9 @@ async function checkPair(args) {
       web3.utils.fromWei(uniswapResult, "Ether")
     );
     let kyberMinReturn = web3.utils.fromWei(kyberResult.slippageRate, "Ether");
-    let outputAmount = Uniswap_Return.multipliedBy(kyberMinReturn);
+    let outputAmount = uniswapReturn.multipliedBy(kyberMinReturn);
 
-    if (Output_Amount.isGreaterThan(1)) {
+    if (outputAmount.isGreaterThan(1)) {
       console.log("Buy==============>" + outputTokenSymbol);
       console.table([
         {
@@ -935,13 +948,16 @@ async function checkPair(args) {
       'Timestamp': moment().tz('America/Chicago').format(),
      */
   } catch (error) {
-    console.log("unable to fetch for symbol : " + args.outputTokenSymbol);
+    console.log(
+      "unable to fetch for symbol : " +
+        args.outputTokenSymbol /*  +
+        " due to : " +
+        error */
+    );
   }
 }
 
-let priceMonitor;
-let monitoringPrice = false;
-
+// Checking opportunities for 50 pairs internally calls checkPair()
 async function monitorPrice() {
   if (monitoringPrice) {
     return;
@@ -970,9 +986,3 @@ async function monitorPrice() {
 
   monitoringPrice = false;
 }
-
-// Check markets every n seconds
-const POLLING_INTERVAL = process.env.POLLING_INTERVAL || 3000; // 3 Seconds
-priceMonitor = setInterval(async () => {
-  await monitorPrice();
-}, POLLING_INTERVAL);
