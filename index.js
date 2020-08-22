@@ -9,6 +9,7 @@ const HDWalletProvider = require("@truffle/hdwallet-provider");
 const moment = require("moment-timezone");
 const numeral = require("numeral");
 const _ = require("lodash");
+const { timeStamp } = require("console");
 
 //=======================================================================================================================
 //=============================================Initializing connection objects===========================================
@@ -932,12 +933,13 @@ async function checkPair(args) {
           "Uniswap rate": uniswapReturn,
           "Kyber rate": kyberMinReturn,
           "Output amount": outputAmount,
+          Timestamp: Date.now().toLocaleString(),
         },
       ]);
 
-      console.log("Uniswap rate :" + uniswapReturn);
+      console.log("Uniswap rate :" + uniswapReturn.toNumber());
       console.log("kyber rate :" + kyberMinReturn);
-      console.log("Output amount : " + outputAmount);
+      console.log("Output amount : " + outputAmount.toNumber());
     } /*  else {
       console.log("output less than 1");
     } */
